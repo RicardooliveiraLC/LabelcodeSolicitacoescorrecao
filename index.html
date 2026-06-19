@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Solicitações de Correção · Label Code</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #191c26;
+    --card: #1e2130;
+    --border: #2a2f45;
+    --accent: #e8b84b;
+    --accent2: #4b8ee8;
+    --accent3: #e84b6a;
+    --text: #eaedf5;
+    --muted: #7c82a0;
+    --dev: #4b8ee8;
+    --com: #e8b84b;
+    --qua: #6be8b8;
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .logo-area { display: flex; align-items: center; gap: 12px; }
+  .logo-badge {
+    background: var(--accent);
+    color: #0f1117;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: .01em; }
+  header .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* FILTROS */
+  .filtros {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .filtros label { font-size: 12px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .filtros select {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-family: var(--font);
+    cursor: pointer;
+    outline: none;
+    margin-left: 8px;
+  }
+  .filtros select:focus { border-color: var(--accent); }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 24px 32px 8px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 20px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-color, var(--accent));
+  }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .kpi-value { font-size: 36px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* GRID DE GRÁFICOS */
+  .charts-grid {
+    padding: 16px 32px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-card.third { grid-column: span 1; }
+  .chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .chart-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    opacity: .7;
+  }
+  .chart-wrap { position: relative; }
+
+  /* HEATMAP */
+  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .heatmap-table th {
+    text-align: left;
+    padding: 6px 10px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .heatmap-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(42,47,69,.5);
+    vertical-align: middle;
+  }
+  .heatmap-table tr:last-child td { border-bottom: none; }
+  .heatmap-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 26px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .tipo-tag {
+    display: inline-block;
+    background: rgba(74,88,140,.25);
+    border: 1px solid rgba(74,88,140,.4);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+
+  /* RESPONSIVO */
+  @media (max-width: 860px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    .chart-card.wide { grid-column: 1; }
+    .kpi-row { padding: 16px; }
+    .charts-grid { padding: 8px 16px 24px; }
+    header, .filtros { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-badge">LABEL CODE</div>
+    <div>
+      <h1>Solicitações de Correção</h1>
+      <div class="subtitle">Painel gerencial · SGI / Qualidade</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--muted);text-align:right;">
+    Período: Nov/2025 – Jun/2026<br>
+    <span id="total-filtrado" style="color:var(--accent);font-weight:700;font-size:14px;">320 registros</span>
+  </div>
+</header>
+
+<div class="filtros">
+  <div>
+    <label for="sel-ano">Ano</label>
+    <select id="sel-ano" onchange="aplicarFiltros()">
+      <option value="todos">Todos</option>
+      <option value="2025">2025</option>
+      <option value="2026">2026</option>
+    </select>
+  </div>
+  <div>
+    <label for="sel-mes">Mês</label>
+    <select id="sel-mes" onchange="aplicarFiltros()">
+      <option value="todos">Todos</option>
+    </select>
+  </div>
+  <div>
+    <label for="sel-setor">Setor</label>
+    <select id="sel-setor" onchange="aplicarFiltros()">
+      <option value="todos">Todos</option>
+      <option value="DESENVOLVIMENTO">Desenvolvimento</option>
+      <option value="COMERCIAL">Comercial</option>
+      <option value="QUALIDADE">Qualidade</option>
+    </select>
+  </div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card" style="--accent-color:#e8b84b;">
+    <div class="kpi-label">Total SC</div>
+    <div class="kpi-value" id="kpi-total">320</div>
+    <div class="kpi-sub">solicitações registradas</div>
+  </div>
+  <div class="kpi-card" style="--accent-color:#4b8ee8;">
+    <div class="kpi-label">Desenvolvimento</div>
+    <div class="kpi-value" id="kpi-dev" style="color:var(--dev)">253</div>
+    <div class="kpi-sub" id="kpi-dev-pct">79,1% do total</div>
+  </div>
+  <div class="kpi-card" style="--accent-color:#e8b84b;">
+    <div class="kpi-label">Comercial</div>
+    <div class="kpi-value" id="kpi-com" style="color:var(--com)">66</div>
+    <div class="kpi-sub" id="kpi-com-pct">20,6% do total</div>
+  </div>
+  <div class="kpi-card" style="--accent-color:#e84b6a;">
+    <div class="kpi-label">Pico mensal</div>
+    <div class="kpi-value" id="kpi-pico" style="color:var(--accent3)">98</div>
+    <div class="kpi-sub" id="kpi-pico-mes">Jun/2026</div>
+  </div>
+  <div class="kpi-card" style="--accent-color:#6be8b8;">
+    <div class="kpi-label">Tipo mais freq.</div>
+    <div class="kpi-value" style="font-size:18px;color:var(--qua);padding-top:4px;" id="kpi-top-tipo">PN/PA diverg.</div>
+    <div class="kpi-sub" id="kpi-top-tipo-n">52 ocorrências</div>
+  </div>
+</div>
+
+<div class="charts-grid">
+
+  <!-- EVOLUÇÃO MENSAL TOTAL -->
+  <div class="chart-card wide">
+    <div class="chart-title">Evolução mensal de Solicitações de Correção</div>
+    <div class="chart-desc">Volume total registrado por mês · barras com linha de tendência acumulada</div>
+    <div class="chart-wrap" style="height:240px;">
+      <canvas id="chartEvolucao"></canvas>
+    </div>
+  </div>
+
+  <!-- SETOR POR MÊS - STACKED -->
+  <div class="chart-card wide">
+    <div class="chart-title">SC por Setor ao longo do tempo</div>
+    <div class="chart-desc">Distribuição mensal empilhada — Desenvolvimento vs. Comercial vs. Qualidade</div>
+    <div class="chart-wrap" style="height:240px;">
+      <canvas id="chartSetorMes"></canvas>
+    </div>
+  </div>
+
+  <!-- PIZZA SETOR -->
+  <div class="chart-card">
+    <div class="chart-title">Distribuição por Setor</div>
+    <div class="chart-desc">Participação percentual de cada setor no total</div>
+    <div class="chart-wrap" style="height:260px;">
+      <canvas id="chartPizzaSetor"></canvas>
+    </div>
+  </div>
+
+  <!-- BARRAS HORIZONTAL TIPO -->
+  <div class="chart-card">
+    <div class="chart-title">Ranking por Tipo de Divergência</div>
+    <div class="chart-desc">Frequência acumulada por categoria · período completo</div>
+    <div class="chart-wrap" style="height:260px;">
+      <canvas id="chartTipoBar"></canvas>
+    </div>
+  </div>
+
+  <!-- TIPO POR MÊS - LINHA -->
+  <div class="chart-card wide">
+    <div class="chart-title">Evolução dos principais tipos de divergência por mês</div>
+    <div class="chart-desc">Top 6 tipos — clique na legenda para mostrar/ocultar</div>
+    <div class="chart-wrap" style="height:280px;">
+      <canvas id="chartTipoMes"></canvas>
+    </div>
+  </div>
+
+  <!-- HEATMAP SETOR x TIPO -->
+  <div class="chart-card wide">
+    <div class="chart-title">Mapa de calor · Setor × Tipo de Divergência</div>
+    <div class="chart-desc">Quais tipos de problema são gerados por qual setor</div>
+    <div id="heatmap-container"></div>
+  </div>
+
+</div>
+
+<script>
+// ── DADOS ────────────────────────────────────────────────────────────────────
+const RAW = {
+  meses: ["Nov/2025","Dez/2025","Jan/2026","Fev/2026","Mar/2026","Abr/2026","Mai/2026","Jun/2026"],
+  mes_order: ["2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"],
+  total_mes: [73,24,16,5,23,49,32,98],
+  setores: ["COMERCIAL","DESENVOLVIMENTO","QUALIDADE"],
+  setor_por_mes: {
+    "COMERCIAL":      [10,5,1,1,8,16,7,18],
+    "DESENVOLVIMENTO":[63,19,15,4,15,33,24,80],
+    "QUALIDADE":      [0,0,0,0,0,0,1,0]
+  },
+  tipos: ["PN/PA divergente","Descrição divergente","Layout divergente","Qtd. por rolo","Erro estrutura / FT","Imagem da OP","Versão do produto","Rotulagem divergente","Ajuste técnico","Data/Prazo validade","Erro cadastro / Info","Sentido de saída"],
+  tipo_por_mes: {
+    "PN/PA divergente":      [26,8,5,1,3,3,5,1],
+    "Descrição divergente":  [3,2,1,0,2,11,11,21],
+    "Layout divergente":     [9,8,4,2,2,13,9,4],
+    "Qtd. por rolo":         [6,0,0,0,0,0,0,26],
+    "Erro estrutura / FT":   [1,1,1,2,5,9,3,7],
+    "Imagem da OP":          [2,0,1,0,2,0,1,23],
+    "Versão do produto":     [2,1,1,0,5,7,1,11],
+    "Rotulagem divergente":  [16,0,1,0,0,1,1,0],
+    "Ajuste técnico":        [3,1,1,0,4,5,0,4],
+    "Data/Prazo validade":   [3,2,0,0,0,0,0,0],
+    "Erro cadastro / Info":  [1,0,1,0,0,0,1,0],
+    "Sentido de saída":      [1,1,0,0,0,0,0,1]
+  },
+  setor_total: { labels:["COMERCIAL","DESENVOLVIMENTO","QUALIDADE"], values:[66,253,1] },
+  tipo_total:  { labels:["PN/PA divergente","Descrição divergente","Layout divergente","Qtd. por rolo","Erro estrutura / FT","Imagem da OP","Versão do produto","Rotulagem divergente","Ajuste técnico","Data/Prazo validade","Erro cadastro / Info","Sentido de saída"], values:[52,51,51,32,29,29,28,19,18,5,3,3] },
+  heatmap: [
+    {setor:"COMERCIAL",tipo_norm:"Ajuste técnico",count:4},
+    {setor:"COMERCIAL",tipo_norm:"Data/Prazo validade",count:5},
+    {setor:"COMERCIAL",tipo_norm:"Descrição divergente",count:24},
+    {setor:"COMERCIAL",tipo_norm:"Erro cadastro / Info",count:1},
+    {setor:"COMERCIAL",tipo_norm:"PN/PA divergente",count:9},
+    {setor:"COMERCIAL",tipo_norm:"Versão do produto",count:23},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Ajuste técnico",count:14},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Descrição divergente",count:27},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Erro cadastro / Info",count:2},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Erro estrutura / FT",count:29},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Imagem da OP",count:29},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Layout divergente",count:50},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"PN/PA divergente",count:43},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Qtd. por rolo",count:32},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Rotulagem divergente",count:19},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Sentido de saída",count:3},
+    {setor:"DESENVOLVIMENTO",tipo_norm:"Versão do produto",count:5},
+    {setor:"QUALIDADE",tipo_norm:"Layout divergente",count:1}
+  ],
+  anos: ["2025","2026"]
+};
+
+// ── FILTROS ───────────────────────────────────────────────────────────────────
+const selMes = document.getElementById('sel-mes');
+RAW.meses.forEach((m, i) => {
+  const opt = document.createElement('option');
+  opt.value = RAW.mes_order[i];
+  opt.textContent = m;
+  selMes.appendChild(opt);
+});
+
+let filtroAno = 'todos', filtroMes = 'todos', filtroSetor = 'todos';
+
+function getIndicesMeses() {
+  return RAW.mes_order.map((m, i) => {
+    const ano = m.split('-')[0];
+    if (filtroAno !== 'todos' && ano !== filtroAno) return null;
+    if (filtroMes !== 'todos' && m !== filtroMes) return null;
+    return i;
+  }).filter(i => i !== null);
+}
+
+function aplicarFiltros() {
+  filtroAno   = document.getElementById('sel-ano').value;
+  filtroMes   = document.getElementById('sel-mes').value;
+  filtroSetor = document.getElementById('sel-setor').value;
+  atualizarTudo();
+}
+
+// ── PALETAS ───────────────────────────────────────────────────────────────────
+const CORES_SETOR = { COMERCIAL:'#e8b84b', DESENVOLVIMENTO:'#4b8ee8', QUALIDADE:'#6be8b8' };
+const CORES_TIPO = [
+  '#e8b84b','#4b8ee8','#e84b6a','#6be8b8','#a84be8','#e87a4b',
+  '#4be8c8','#e84ba0','#8ae84b','#4b70e8','#e8d54b','#b04be8'
+];
+
+// ── CHART DEFAULTS ────────────────────────────────────────────────────────────
+Chart.defaults.color = '#7c82a0';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+
+// ── INSTÂNCIAS DOS CHARTS ─────────────────────────────────────────────────────
+let chEv, chSM, chPS, chTB, chTM;
+
+function criarGraficos() {
+  chEv = new Chart(document.getElementById('chartEvolucao'), { type:'bar', data:{labels:[],datasets:[]}, options: evolucaoOpts() });
+  chSM = new Chart(document.getElementById('chartSetorMes'),  { type:'bar', data:{labels:[],datasets:[]}, options: setorMesOpts() });
+  chPS = new Chart(document.getElementById('chartPizzaSetor'),{ type:'doughnut', data:{labels:[],datasets:[]}, options: pizzaOpts() });
+  chTB = new Chart(document.getElementById('chartTipoBar'),   { type:'bar', data:{labels:[],datasets:[]}, options: tipoBarOpts() });
+  chTM = new Chart(document.getElementById('chartTipoMes'),   { type:'line', data:{labels:[],datasets:[]}, options: tipoMesOpts() });
+  atualizarTudo();
+}
+
+function atualizarTudo() {
+  const idx = getIndicesMeses();
+  const mesesLabel = idx.map(i => RAW.meses[i]);
+
+  // ── totais filtrados por setor
+  let totalFilt = 0, devFilt = 0, comFilt = 0;
+  idx.forEach(i => {
+    const dev = filtroSetor === 'todos' || filtroSetor === 'DESENVOLVIMENTO' ? RAW.setor_por_mes.DESENVOLVIMENTO[i] : 0;
+    const com = filtroSetor === 'todos' || filtroSetor === 'COMERCIAL'       ? RAW.setor_por_mes.COMERCIAL[i] : 0;
+    const qua = filtroSetor === 'todos' || filtroSetor === 'QUALIDADE'       ? RAW.setor_por_mes.QUALIDADE[i] : 0;
+    totalFilt += dev + com + qua;
+    devFilt += dev;
+    comFilt += com;
+  });
+
+  // KPIs
+  document.getElementById('kpi-total').textContent = totalFilt;
+  document.getElementById('total-filtrado').textContent = totalFilt + ' registros';
+  document.getElementById('kpi-dev').textContent = devFilt;
+  document.getElementById('kpi-com').textContent = comFilt;
+  document.getElementById('kpi-dev-pct').textContent = totalFilt > 0 ? (devFilt/totalFilt*100).toFixed(1).replace('.',',') + '% do total' : '-';
+  document.getElementById('kpi-com-pct').textContent = totalFilt > 0 ? (comFilt/totalFilt*100).toFixed(1).replace('.',',') + '% do total' : '-';
+
+  // Pico mensal
+  const totaisMes = idx.map(i => {
+    const dev = filtroSetor === 'todos' || filtroSetor === 'DESENVOLVIMENTO' ? RAW.setor_por_mes.DESENVOLVIMENTO[i] : 0;
+    const com = filtroSetor === 'todos' || filtroSetor === 'COMERCIAL'       ? RAW.setor_por_mes.COMERCIAL[i] : 0;
+    const qua = filtroSetor === 'todos' || filtroSetor === 'QUALIDADE'       ? RAW.setor_por_mes.QUALIDADE[i] : 0;
+    return dev + com + qua;
+  });
+  const picoIdx = totaisMes.indexOf(Math.max(...totaisMes));
+  document.getElementById('kpi-pico').textContent = totaisMes[picoIdx] ?? 0;
+  document.getElementById('kpi-pico-mes').textContent = mesesLabel[picoIdx] ?? '-';
+
+  // Tipo mais freq.
+  const tipoTotais = RAW.tipos.map(t =>
+    idx.reduce((acc, i) => acc + (RAW.tipo_por_mes[t]?.[i] ?? 0), 0)
+  );
+  const topIdx = tipoTotais.indexOf(Math.max(...tipoTotais));
+  document.getElementById('kpi-top-tipo').textContent = RAW.tipos[topIdx]?.replace(' divergente','').replace(' / ','/') ?? '-';
+  document.getElementById('kpi-top-tipo-n').textContent = tipoTotais[topIdx] + ' ocorrências';
+
+  // ── EVOLUÇÃO MENSAL
+  const totaisMesFull = idx.map(i => {
+    const dev = filtroSetor === 'todos' || filtroSetor === 'DESENVOLVIMENTO' ? RAW.setor_por_mes.DESENVOLVIMENTO[i] : 0;
+    const com = filtroSetor === 'todos' || filtroSetor === 'COMERCIAL'       ? RAW.setor_por_mes.COMERCIAL[i] : 0;
+    const qua = filtroSetor === 'todos' || filtroSetor === 'QUALIDADE'       ? RAW.setor_por_mes.QUALIDADE[i] : 0;
+    return dev + com + qua;
+  });
+  let acum = 0;
+  const acumData = totaisMesFull.map(v => (acum += v));
+  chEv.data.labels = mesesLabel;
+  chEv.data.datasets = [
+    { type:'bar', label:'SC / mês', data: totaisMesFull, backgroundColor: totaisMesFull.map(v => v >= 80 ? '#e84b6a99' : v >= 40 ? '#e8b84b99' : '#4b8ee899'), borderRadius:5, order:2 },
+    { type:'line', label:'Acumulado', data: acumData, borderColor:'#e8b84b', backgroundColor:'transparent', pointBackgroundColor:'#e8b84b', pointRadius:3, borderWidth:2, tension:.3, yAxisID:'y2', order:1 }
+  ];
+  if (!chEv.options.scales.y2) {
+    chEv.options.scales.y2 = { type:'linear', position:'right', grid:{ drawOnChartArea:false }, ticks:{ color:'#e8b84b' } };
+  }
+  chEv.update();
+
+  // ── SETOR POR MÊS
+  const setoresFilt = filtroSetor === 'todos' ? RAW.setores : [filtroSetor];
+  chSM.data.labels = mesesLabel;
+  chSM.data.datasets = setoresFilt.map(s => ({
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+    data: idx.map(i => RAW.setor_por_mes[s][i]),
+    backgroundColor: CORES_SETOR[s] + 'cc',
+    borderColor: CORES_SETOR[s],
+    borderWidth: 1,
+    borderRadius: 4
+  }));
+  chSM.update();
+
+  // ── PIZZA SETOR
+  const pvLabels = [], pvVals = [], pvColors = [];
+  RAW.setores.forEach(s => {
+    if (filtroSetor !== 'todos' && s !== filtroSetor) return;
+    const v = idx.reduce((a, i) => a + RAW.setor_por_mes[s][i], 0);
+    if (v > 0) { pvLabels.push(s); pvVals.push(v); pvColors.push(CORES_SETOR[s]); }
+  });
+  chPS.data.labels = pvLabels;
+  chPS.data.datasets = [{ data: pvVals, backgroundColor: pvColors, borderColor: '#1e2130', borderWidth: 3, hoverOffset: 8 }];
+  chPS.update();
+
+  // ── TIPO BARRA HORIZONTAL
+  const tiposSorted = [...RAW.tipos].map((t, i) => ({
+    tipo: t,
+    val: idx.reduce((a, i2) => a + (RAW.tipo_por_mes[t]?.[i2] ?? 0), 0),
+    cor: CORES_TIPO[i]
+  })).sort((a,b) => b.val - a.val);
+  chTB.data.labels = tiposSorted.map(x => x.tipo);
+  chTB.data.datasets = [{ data: tiposSorted.map(x => x.val), backgroundColor: tiposSorted.map(x => x.cor + 'cc'), borderColor: tiposSorted.map(x => x.cor), borderWidth:1, borderRadius:4 }];
+  chTB.update();
+
+  // ── TIPO POR MÊS LINHA (top 6)
+  const top6 = tiposSorted.slice(0, 6);
+  chTM.data.labels = mesesLabel;
+  chTM.data.datasets = top6.map(({ tipo, cor }) => ({
+    label: tipo,
+    data: idx.map(i => RAW.tipo_por_mes[tipo]?.[i] ?? 0),
+    borderColor: cor,
+    backgroundColor: cor + '20',
+    pointBackgroundColor: cor,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    borderWidth: 2,
+    tension: .3,
+    fill: false
+  }));
+  chTM.update();
+
+  // ── HEATMAP
+  renderHeatmap(idx);
+}
+
+// ── OPTIONS HELPERS ───────────────────────────────────────────────────────────
+function baseGridOpts() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color:'#7c82a0', padding:12, boxWidth:12, font:{size:11} } }, tooltip: { backgroundColor:'#0f1117', titleColor:'#eaedf5', bodyColor:'#7c82a0', borderColor:'#2a2f45', borderWidth:1 } },
+    scales: {
+      x: { ticks:{ color:'#7c82a0' }, grid:{ color:'#2a2f45' } },
+      y: { ticks:{ color:'#7c82a0' }, grid:{ color:'#2a2f45' } }
+    }
+  };
+}
+function evolucaoOpts() { const o = baseGridOpts(); o.plugins.legend = { position:'top', labels: { color:'#7c82a0', padding:16, boxWidth:12 } }; return o; }
+function setorMesOpts()  { const o = baseGridOpts(); o.scales.x.stacked = true; o.scales.y.stacked = true; return o; }
+function pizzaOpts() {
+  return { responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'right', labels:{ color:'#7c82a0', padding:14, boxWidth:14, font:{size:11} } }, tooltip:{ backgroundColor:'#0f1117', titleColor:'#eaedf5', bodyColor:'#7c82a0', borderColor:'#2a2f45', borderWidth:1, callbacks:{ label: ctx => { const tot = ctx.dataset.data.reduce((a,b)=>a+b,0); return ` ${ctx.parsed} (${(ctx.parsed/tot*100).toFixed(1)}%)`; } } } } };
+}
+function tipoBarOpts() {
+  return { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false }, tooltip:{ backgroundColor:'#0f1117', titleColor:'#eaedf5', bodyColor:'#7c82a0', borderColor:'#2a2f45', borderWidth:1 } },
+    scales:{ x:{ ticks:{ color:'#7c82a0' }, grid:{ color:'#2a2f45' } }, y:{ ticks:{ color:'#eaedf5', font:{size:11} }, grid:{ color:'#2a2f4520' } } }
+  };
+}
+function tipoMesOpts() { const o = baseGridOpts(); o.plugins.legend = { position:'top', labels:{ color:'#7c82a0', padding:12, boxWidth:12, font:{size:11} } }; return o; }
+
+// ── HEATMAP TABLE ─────────────────────────────────────────────────────────────
+function renderHeatmap(idx) {
+  const setoresFilt = filtroSetor === 'todos' ? RAW.setores : [filtroSetor];
+  const tipos = RAW.tipos;
+
+  // Montar mapa setor -> tipo -> count filtrado
+  const mapa = {};
+  RAW.heatmap.forEach(r => {
+    if (filtroSetor !== 'todos' && r.setor !== filtroSetor) return;
+    if (!mapa[r.setor]) mapa[r.setor] = {};
+    mapa[r.setor][r.tipo_norm] = 0;
+  });
+  // Recalcular por idx (os dados do heatmap são totais; para filtro de meses, precisamos tipo_por_mes x setor_por_mes proporcional)
+  // Simplificação: para filtro de mês, proporcionar pelo total de meses filtrados
+  const tipoFiltrado = {};
+  tipos.forEach(t => {
+    tipoFiltrado[t] = idx.reduce((a, i) => a + (RAW.tipo_por_mes[t]?.[i] ?? 0), 0);
+  });
+
+  // Máximo para escala de cor
+  let maxVal = 0;
+  RAW.heatmap.forEach(r => { if (r.count > maxVal) maxVal = r.count; });
+
+  // Filtrar tipos com algum valor
+  const tiposComValor = tipos.filter(t => tipoFiltrado[t] > 0);
+
+  let html = `<div style="overflow-x:auto;"><table class="heatmap-table">
+    <thead><tr>
+      <th style="min-width:120px;">Tipo de Divergência</th>
+      ${setoresFilt.map(s => `<th style="text-align:center;color:${CORES_SETOR[s]};">${s.charAt(0)+s.slice(1).toLowerCase()}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+  tiposComValor.forEach(t => {
+    html += `<tr><td><span class="tipo-tag">${t}</span></td>`;
+    setoresFilt.forEach(s => {
+      const row = RAW.heatmap.find(r => r.setor === s && r.tipo_norm === t);
+      const v = row ? row.count : 0;
+      if (v === 0) {
+        html += `<td style="text-align:center;"><span style="color:#2a2f45;">—</span></td>`;
+      } else {
+        const intensity = Math.max(0.12, v / maxVal);
+        const cor = CORES_SETOR[s];
+        html += `<td style="text-align:center;"><span class="heatmap-cell" style="background:${cor}${Math.round(intensity*255).toString(16).padStart(2,'0')};color:${intensity>0.5?'#0f1117':cor};">${v}</span></td>`;
+      }
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('heatmap-container').innerHTML = html;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+criarGraficos();
+</script>
+</body>
+</html>
