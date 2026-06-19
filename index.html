@@ -3,604 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard · Solicitações de Correção · Label Code</title>
+<title>Dashboard SC — Label Code</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #0f1117;
-    --surface: #191c26;
-    --card: #1e2130;
-    --border: #2a2f45;
-    --accent: #e8b84b;
-    --accent2: #4b8ee8;
-    --accent3: #e84b6a;
-    --text: #eaedf5;
-    --muted: #7c82a0;
-    --dev: #4b8ee8;
-    --com: #e8b84b;
-    --qua: #6be8b8;
-    --font: 'Segoe UI', system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
-
-  /* HEADER */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  .logo-area { display: flex; align-items: center; gap: 12px; }
-  .logo-badge {
-    background: var(--accent);
-    color: #0f1117;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .12em;
-    padding: 4px 10px;
-    border-radius: 4px;
-  }
-  header h1 { font-size: 17px; font-weight: 600; letter-spacing: .01em; }
-  header .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-  /* FILTROS */
-  .filtros {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 32px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .filtros label { font-size: 12px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
-  .filtros select {
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-family: var(--font);
-    cursor: pointer;
-    outline: none;
-    margin-left: 8px;
-  }
-  .filtros select:focus { border-color: var(--accent); }
-
-  /* KPI CARDS */
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
-    padding: 24px 32px 8px;
-  }
-  .kpi-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px 20px 16px;
-    position: relative;
-    overflow: hidden;
-  }
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--accent-color, var(--accent));
-  }
-  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
-  .kpi-value { font-size: 36px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
-  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
-
-  /* GRID DE GRÁFICOS */
-  .charts-grid {
-    padding: 16px 32px 32px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .chart-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-  }
-  .chart-card.wide { grid-column: 1 / -1; }
-  .chart-card.third { grid-column: span 1; }
-  .chart-title {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-  .chart-desc {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 20px;
-    opacity: .7;
-  }
-  .chart-wrap { position: relative; }
-
-  /* HEATMAP */
-  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .heatmap-table th {
-    text-align: left;
-    padding: 6px 10px;
-    color: var(--muted);
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-  }
-  .heatmap-table td {
-    padding: 7px 10px;
-    border-bottom: 1px solid rgba(42,47,69,.5);
-    vertical-align: middle;
-  }
-  .heatmap-table tr:last-child td { border-bottom: none; }
-  .heatmap-cell {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 36px;
-    height: 26px;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .tipo-tag {
-    display: inline-block;
-    background: rgba(74,88,140,.25);
-    border: 1px solid rgba(74,88,140,.4);
-    color: var(--text);
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 11px;
-  }
-
-  /* RESPONSIVO */
-  @media (max-width: 860px) {
-    .charts-grid { grid-template-columns: 1fr; }
-    .chart-card.wide { grid-column: 1; }
-    .kpi-row { padding: 16px; }
-    .charts-grid { padding: 8px 16px 24px; }
-    header, .filtros { padding: 14px 16px; }
-  }
+:root {
+  --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3347;
+  --text:#e2e8f0; --muted:#8892a4;
+  --blue:#4f7ef8; --cyan:#22d3ee; --green:#34d399; --amber:#fbbf24;
+  --red:#f87171; --purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.header h1{font-size:17px;font-weight:600}
+.header .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.upd{font-size:11px;color:var(--muted)}
+.bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar label{font-size:12px;color:var(--muted);margin-right:4px}
+select{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:13px;cursor:pointer}
+.main{padding:20px 24px;max-width:1400px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.kpi .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi .val{font-size:26px;font-weight:700}
+.kpi .hint{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi.blue .val{color:var(--blue)} .kpi.green .val{color:var(--green)}
+.kpi.amber .val{color:var(--amber)} .kpi.purple .val{color:var(--purple)}
+.row{display:grid;gap:14px;margin-bottom:14px}
+.row.cols2{grid-template-columns:1fr 1fr}
+.row.full{grid-template-columns:1fr}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+.card h3{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text)}
+.wrap{position:relative;height:230px}
+.wrap-tall{position:relative;height:280px}
+.hm{overflow-x:auto;margin-top:4px}
+table.ht{border-collapse:collapse;width:100%;font-size:12px}
+table.ht th{background:var(--surface2);color:var(--muted);padding:7px 10px;text-align:left;border:1px solid var(--border);font-weight:500;white-space:nowrap}
+table.ht td{border:1px solid var(--border);padding:7px 10px;text-align:center;min-width:65px}
+table.ht td.s{text-align:left;color:var(--text);font-weight:500;white-space:nowrap;background:var(--surface2)}
+@media(max-width:768px){.row.cols2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="logo-area">
-    <div class="logo-badge">LABEL CODE</div>
-    <div>
-      <h1>Solicitações de Correção</h1>
-      <div class="subtitle">Painel gerencial · SGI / Qualidade</div>
-    </div>
-  </div>
-  <div style="font-size:12px;color:var(--muted);text-align:right;">
-    Período: Nov/2025 – Jun/2026<br>
-    <span id="total-filtrado" style="color:var(--accent);font-weight:700;font-size:14px;">320 registros</span>
-  </div>
-</header>
-
-<div class="filtros">
+<div class="header">
   <div>
-    <label for="sel-ano">Ano</label>
-    <select id="sel-ano" onchange="aplicarFiltros()">
-      <option value="todos">Todos</option>
-      <option value="2025">2025</option>
-      <option value="2026">2026</option>
-    </select>
+    <h1>Dashboard · Solicitações de Correção</h1>
+    <div class="sub">Label Code — Gestão de Qualidade</div>
   </div>
-  <div>
-    <label for="sel-mes">Mês</label>
-    <select id="sel-mes" onchange="aplicarFiltros()">
-      <option value="todos">Todos</option>
-    </select>
+  <div class="upd" id="upd"></div>
+</div>
+<div class="bar">
+  <div><label>Ano:</label><select id="fano" onchange="render()"><option value="">Todos</option></select></div>
+  <div><label>Mês:</label><select id="fmes" onchange="render()"><option value="">Todos</option></select></div>
+  <div><label>Setor:</label><select id="fset" onchange="render()"><option value="">Todos</option></select></div>
+</div>
+<div class="main">
+  <div class="kpis" id="kpis"></div>
+  <div class="row full">
+    <div class="card"><h3>Volume mensal de SCs</h3><div class="wrap"><canvas id="cMes"></canvas></div></div>
   </div>
-  <div>
-    <label for="sel-setor">Setor</label>
-    <select id="sel-setor" onchange="aplicarFiltros()">
-      <option value="todos">Todos</option>
-      <option value="DESENVOLVIMENTO">Desenvolvimento</option>
-      <option value="COMERCIAL">Comercial</option>
-      <option value="QUALIDADE">Qualidade</option>
-    </select>
+  <div class="row cols2">
+    <div class="card"><h3>SCs por setor</h3><div class="wrap"><canvas id="cSet"></canvas></div></div>
+    <div class="card"><h3>Tipos de divergência (top 10)</h3><div class="wrap-tall"><canvas id="cTip"></canvas></div></div>
+  </div>
+  <div class="row full">
+    <div class="card"><h3>Heatmap — Setor × Tipo de divergência</h3><div class="hm" id="hm"></div></div>
   </div>
 </div>
-
-<div class="kpi-row">
-  <div class="kpi-card" style="--accent-color:#e8b84b;">
-    <div class="kpi-label">Total SC</div>
-    <div class="kpi-value" id="kpi-total">320</div>
-    <div class="kpi-sub">solicitações registradas</div>
-  </div>
-  <div class="kpi-card" style="--accent-color:#4b8ee8;">
-    <div class="kpi-label">Desenvolvimento</div>
-    <div class="kpi-value" id="kpi-dev" style="color:var(--dev)">253</div>
-    <div class="kpi-sub" id="kpi-dev-pct">79,1% do total</div>
-  </div>
-  <div class="kpi-card" style="--accent-color:#e8b84b;">
-    <div class="kpi-label">Comercial</div>
-    <div class="kpi-value" id="kpi-com" style="color:var(--com)">66</div>
-    <div class="kpi-sub" id="kpi-com-pct">20,6% do total</div>
-  </div>
-  <div class="kpi-card" style="--accent-color:#e84b6a;">
-    <div class="kpi-label">Pico mensal</div>
-    <div class="kpi-value" id="kpi-pico" style="color:var(--accent3)">98</div>
-    <div class="kpi-sub" id="kpi-pico-mes">Jun/2026</div>
-  </div>
-  <div class="kpi-card" style="--accent-color:#6be8b8;">
-    <div class="kpi-label">Tipo mais freq.</div>
-    <div class="kpi-value" style="font-size:18px;color:var(--qua);padding-top:4px;" id="kpi-top-tipo">PN/PA diverg.</div>
-    <div class="kpi-sub" id="kpi-top-tipo-n">52 ocorrências</div>
-  </div>
-</div>
-
-<div class="charts-grid">
-
-  <!-- EVOLUÇÃO MENSAL TOTAL -->
-  <div class="chart-card wide">
-    <div class="chart-title">Evolução mensal de Solicitações de Correção</div>
-    <div class="chart-desc">Volume total registrado por mês · barras com linha de tendência acumulada</div>
-    <div class="chart-wrap" style="height:240px;">
-      <canvas id="chartEvolucao"></canvas>
-    </div>
-  </div>
-
-  <!-- SETOR POR MÊS - STACKED -->
-  <div class="chart-card wide">
-    <div class="chart-title">SC por Setor ao longo do tempo</div>
-    <div class="chart-desc">Distribuição mensal empilhada — Desenvolvimento vs. Comercial vs. Qualidade</div>
-    <div class="chart-wrap" style="height:240px;">
-      <canvas id="chartSetorMes"></canvas>
-    </div>
-  </div>
-
-  <!-- PIZZA SETOR -->
-  <div class="chart-card">
-    <div class="chart-title">Distribuição por Setor</div>
-    <div class="chart-desc">Participação percentual de cada setor no total</div>
-    <div class="chart-wrap" style="height:260px;">
-      <canvas id="chartPizzaSetor"></canvas>
-    </div>
-  </div>
-
-  <!-- BARRAS HORIZONTAL TIPO -->
-  <div class="chart-card">
-    <div class="chart-title">Ranking por Tipo de Divergência</div>
-    <div class="chart-desc">Frequência acumulada por categoria · período completo</div>
-    <div class="chart-wrap" style="height:260px;">
-      <canvas id="chartTipoBar"></canvas>
-    </div>
-  </div>
-
-  <!-- TIPO POR MÊS - LINHA -->
-  <div class="chart-card wide">
-    <div class="chart-title">Evolução dos principais tipos de divergência por mês</div>
-    <div class="chart-desc">Top 6 tipos — clique na legenda para mostrar/ocultar</div>
-    <div class="chart-wrap" style="height:280px;">
-      <canvas id="chartTipoMes"></canvas>
-    </div>
-  </div>
-
-  <!-- HEATMAP SETOR x TIPO -->
-  <div class="chart-card wide">
-    <div class="chart-title">Mapa de calor · Setor × Tipo de Divergência</div>
-    <div class="chart-desc">Quais tipos de problema são gerados por qual setor</div>
-    <div id="heatmap-container"></div>
-  </div>
-
-</div>
-
 <script>
-// ── DADOS ────────────────────────────────────────────────────────────────────
-const RAW = {
-  meses: ["Nov/2025","Dez/2025","Jan/2026","Fev/2026","Mar/2026","Abr/2026","Mai/2026","Jun/2026"],
-  mes_order: ["2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"],
-  total_mes: [73,24,16,5,23,49,32,98],
-  setores: ["COMERCIAL","DESENVOLVIMENTO","QUALIDADE"],
-  setor_por_mes: {
-    "COMERCIAL":      [10,5,1,1,8,16,7,18],
-    "DESENVOLVIMENTO":[63,19,15,4,15,33,24,80],
-    "QUALIDADE":      [0,0,0,0,0,0,1,0]
-  },
-  tipos: ["PN/PA divergente","Descrição divergente","Layout divergente","Qtd. por rolo","Erro estrutura / FT","Imagem da OP","Versão do produto","Rotulagem divergente","Ajuste técnico","Data/Prazo validade","Erro cadastro / Info","Sentido de saída"],
-  tipo_por_mes: {
-    "PN/PA divergente":      [26,8,5,1,3,3,5,1],
-    "Descrição divergente":  [3,2,1,0,2,11,11,21],
-    "Layout divergente":     [9,8,4,2,2,13,9,4],
-    "Qtd. por rolo":         [6,0,0,0,0,0,0,26],
-    "Erro estrutura / FT":   [1,1,1,2,5,9,3,7],
-    "Imagem da OP":          [2,0,1,0,2,0,1,23],
-    "Versão do produto":     [2,1,1,0,5,7,1,11],
-    "Rotulagem divergente":  [16,0,1,0,0,1,1,0],
-    "Ajuste técnico":        [3,1,1,0,4,5,0,4],
-    "Data/Prazo validade":   [3,2,0,0,0,0,0,0],
-    "Erro cadastro / Info":  [1,0,1,0,0,0,1,0],
-    "Sentido de saída":      [1,1,0,0,0,0,0,1]
-  },
-  setor_total: { labels:["COMERCIAL","DESENVOLVIMENTO","QUALIDADE"], values:[66,253,1] },
-  tipo_total:  { labels:["PN/PA divergente","Descrição divergente","Layout divergente","Qtd. por rolo","Erro estrutura / FT","Imagem da OP","Versão do produto","Rotulagem divergente","Ajuste técnico","Data/Prazo validade","Erro cadastro / Info","Sentido de saída"], values:[52,51,51,32,29,29,28,19,18,5,3,3] },
-  heatmap: [
-    {setor:"COMERCIAL",tipo_norm:"Ajuste técnico",count:4},
-    {setor:"COMERCIAL",tipo_norm:"Data/Prazo validade",count:5},
-    {setor:"COMERCIAL",tipo_norm:"Descrição divergente",count:24},
-    {setor:"COMERCIAL",tipo_norm:"Erro cadastro / Info",count:1},
-    {setor:"COMERCIAL",tipo_norm:"PN/PA divergente",count:9},
-    {setor:"COMERCIAL",tipo_norm:"Versão do produto",count:23},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Ajuste técnico",count:14},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Descrição divergente",count:27},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Erro cadastro / Info",count:2},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Erro estrutura / FT",count:29},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Imagem da OP",count:29},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Layout divergente",count:50},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"PN/PA divergente",count:43},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Qtd. por rolo",count:32},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Rotulagem divergente",count:19},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Sentido de saída",count:3},
-    {setor:"DESENVOLVIMENTO",tipo_norm:"Versão do produto",count:5},
-    {setor:"QUALIDADE",tipo_norm:"Layout divergente",count:1}
-  ],
-  anos: ["2025","2026"]
-};
-
-// ── FILTROS ───────────────────────────────────────────────────────────────────
-const selMes = document.getElementById('sel-mes');
-RAW.meses.forEach((m, i) => {
-  const opt = document.createElement('option');
-  opt.value = RAW.mes_order[i];
-  opt.textContent = m;
-  selMes.appendChild(opt);
-});
-
-let filtroAno = 'todos', filtroMes = 'todos', filtroSetor = 'todos';
-
-function getIndicesMeses() {
-  return RAW.mes_order.map((m, i) => {
-    const ano = m.split('-')[0];
-    if (filtroAno !== 'todos' && ano !== filtroAno) return null;
-    if (filtroMes !== 'todos' && m !== filtroMes) return null;
-    return i;
-  }).filter(i => i !== null);
-}
-
-function aplicarFiltros() {
-  filtroAno   = document.getElementById('sel-ano').value;
-  filtroMes   = document.getElementById('sel-mes').value;
-  filtroSetor = document.getElementById('sel-setor').value;
-  atualizarTudo();
-}
-
-// ── PALETAS ───────────────────────────────────────────────────────────────────
-const CORES_SETOR = { COMERCIAL:'#e8b84b', DESENVOLVIMENTO:'#4b8ee8', QUALIDADE:'#6be8b8' };
-const CORES_TIPO = [
-  '#e8b84b','#4b8ee8','#e84b6a','#6be8b8','#a84be8','#e87a4b',
-  '#4be8c8','#e84ba0','#8ae84b','#4b70e8','#e8d54b','#b04be8'
-];
-
-// ── CHART DEFAULTS ────────────────────────────────────────────────────────────
-Chart.defaults.color = '#7c82a0';
-Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
-Chart.defaults.font.size = 11;
-
-// ── INSTÂNCIAS DOS CHARTS ─────────────────────────────────────────────────────
-let chEv, chSM, chPS, chTB, chTM;
-
-function criarGraficos() {
-  chEv = new Chart(document.getElementById('chartEvolucao'), { type:'bar', data:{labels:[],datasets:[]}, options: evolucaoOpts() });
-  chSM = new Chart(document.getElementById('chartSetorMes'),  { type:'bar', data:{labels:[],datasets:[]}, options: setorMesOpts() });
-  chPS = new Chart(document.getElementById('chartPizzaSetor'),{ type:'doughnut', data:{labels:[],datasets:[]}, options: pizzaOpts() });
-  chTB = new Chart(document.getElementById('chartTipoBar'),   { type:'bar', data:{labels:[],datasets:[]}, options: tipoBarOpts() });
-  chTM = new Chart(document.getElementById('chartTipoMes'),   { type:'line', data:{labels:[],datasets:[]}, options: tipoMesOpts() });
-  atualizarTudo();
-}
-
-function atualizarTudo() {
-  const idx = getIndicesMeses();
-  const mesesLabel = idx.map(i => RAW.meses[i]);
-
-  // ── totais filtrados por setor
-  let totalFilt = 0, devFilt = 0, comFilt = 0;
-  idx.forEach(i => {
-    const dev = filtroSetor === 'todos' || filtroSetor === 'DESENVOLVIMENTO' ? RAW.setor_por_mes.DESENVOLVIMENTO[i] : 0;
-    const com = filtroSetor === 'todos' || filtroSetor === 'COMERCIAL'       ? RAW.setor_por_mes.COMERCIAL[i] : 0;
-    const qua = filtroSetor === 'todos' || filtroSetor === 'QUALIDADE'       ? RAW.setor_por_mes.QUALIDADE[i] : 0;
-    totalFilt += dev + com + qua;
-    devFilt += dev;
-    comFilt += com;
+const D = {"total": 347, "updated": "18/06/2026 às 16:38", "anos": [2025, 2026], "setores": ["Desenvolvimento", "Comercial", "Qualidade"], "mensal": {"labels": ["2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"], "values": [75, 24, 16, 5, 23, 74, 32, 98]}, "por_setor": {"labels": ["Desenvolvimento", "Comercial", "Qualidade"], "values": [268, 78, 1]}, "por_tipo": {"labels": ["Descrição divergente", "PN/PA divergente", "Layout divergente", "Erro estrutura / FT", "Versão do produto", "Qtd. por rolo", "Imagem da OP", "Rotulagem divergente", "Ajuste técnico", "Data/Prazo validade", "Erro cadastro / Info", "Outros", "Sentido de saída"], "values": [57, 55, 55, 35, 34, 32, 29, 19, 17, 5, 3, 3, 3]}, "heatmap": {"setores": ["Comercial", "Desenvolvimento", "Qualidade"], "tipos": ["Ajuste técnico", "Data/Prazo validade", "Descrição divergente", "Erro cadastro / Info", "Erro estrutura / FT", "Imagem da OP", "Layout divergente", "Outros", "PN/PA divergente", "Qtd. por rolo", "Rotulagem divergente", "Sentido de saída", "Versão do produto"], "matrix": [[4, 5, 30, 1, 0, 0, 0, 0, 9, 0, 0, 0, 29], [13, 0, 27, 2, 35, 29, 54, 3, 46, 32, 19, 3, 5], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]]}, "raw": [{"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020107-002\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020107-001\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020106-003\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020106-002\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020106-001\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020008-005\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020008-004\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020008-003\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020008-001\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020008-002\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020104-001\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020104-001\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "03/11/2025", "_ano": 2025, "op": "P020203002", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "04/11/2025", "_ano": 2025, "op": "P020203003", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "04/11/2025", "_ano": 2025, "op": "P020145-005", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "04/11/2025", "_ano": 2025, "op": "P020135-001 / PA000100206197 ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "P020208004/ PA000100106370", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "P020174001/ PA000100106099", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "Biogrow (off set)- PA 000200104477 P020116-006", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "PA000200104479- biogrow (off set) P020116-004", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "PA 000200104477 / PA000200104479 - Biogrow off set ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "PA000100103652- Jabil mg", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "PA000100103652- Jubileu mg", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Versão do produto", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "Biogrow ( off set)- PA000200104477 P020116-006", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Versão do produto", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "Biogrow (off set) PA000200104479 - P020116-003", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "P0 020116-006 ( PA 000200104477) ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "05/11/2025", "_ano": 2025, "op": "P0 20116-003 (PA 000200104479) ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "06/11/2025", "_ano": 2025, "op": "PA000100205989 / Farmax", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "06/11/2025", "_ano": 2025, "op": "invicta - PA000100106371 P020208-005", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Erro cadastro / Info", "_data_fmt": "06/11/2025", "_ano": 2025, "op": "PA000300104522  / PA000300104524 ( BIOGROW)", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "COMPAL - ETIQUETAS 112x195x01C", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "Data/Prazo validade", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "P020208005 / ET65637-U - PA000100106371 ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "Data/Prazo validade", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "P020063001 / PA000100205677  / VETTA", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "Midea- PA000100106321- P020241-002 ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "Farmax-PA000100205590- P020139-004", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "Imeve- PA000100205657 ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "Imeve- PA000100205655 ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "Data/Prazo validade", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "P020208006 / PA000100106369 / Invicta\t", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "CEVA - PA000100106015 -P020246-001", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "Lola Farmativa-PA000100205516 P020168-002", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "07/11/2025", "_ano": 2025, "op": "Lola formativa- PA000100205515 P020168-001", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100205590- Farmax", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100205590- Farmax", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106387, Ceva ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106388, Ceva.", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106388, CEVA", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106387, CEVA", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Outros", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106388, Ceva", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106391", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106391, Ceva ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "11/11/2025", "_ano": 2025, "op": "PA000100106391, ceva ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "P020241001 / PA000100205212 / Colormaq", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "PA000100106390", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "P020261001/ PA000200106368", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "20261001", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "PA000100106257", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "PA000100206385, BRAZILIAN SECRETS HAIR ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "PA000100206385, BRAZILIAN SECRETS", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "PA000100206385, BRAZILIAN SECRETS", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "PA000100206385", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "P020155002 - pa000100206328 - norvich", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "P020155001- ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "12/11/2025", "_ano": 2025, "op": "P020155003- pa000100206329", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "13/11/2025", "_ano": 2025, "op": "PA000100306386, CAL COMP", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "13/11/2025", "_ano": 2025, "op": "PA000100205985", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "14/11/2025", "_ano": 2025, "op": "PA000100205515, LOLA ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Outros", "_data_fmt": "14/11/2025", "_ano": 2025, "op": "PA000100106383, MULTILASER", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "14/11/2025", "_ano": 2025, "op": "P020224002-ceva pa000100206388", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/11/2025", "_ano": 2025, "op": "PA000100206412, UNICOBA ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/11/2025", "_ano": 2025, "op": "PA000100206413, unicoba ", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "17/11/2025", "_ano": 2025, "op": "Ceva- PA000100206124 P020269-001", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "Sentido de saída", "_data_fmt": "18/11/2025", "_ano": 2025, "op": "Midea- PA0001002066103 - P020240-001", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "18/11/2025", "_ano": 2025, "op": "Foxconn- P020285-001 PA000100601526", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "19/11/2025", "_ano": 2025, "op": "Trading Care - PA000100206400 P020243003", "cliente": ""}, {"_periodo": "2025-11", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "24/11/2025", "_ano": 2025, "op": "PA000100103652, Jabil.", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "01/12/2025", "_ano": 2025, "op": "A010916001 / Pa000100206439", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "02/12/2025", "_ano": 2025, "op": "P020261-002 / Calcomp PA000100106019", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "02/12/2025", "_ano": 2025, "op": "A010917-001- Achlor ", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "02/12/2025", "_ano": 2025, "op": "A010920-001 / Achlor PA000100206443", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "02/12/2025", "_ano": 2025, "op": "A010915-001/ Achlor/ Pa000100206438", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "02/12/2025", "_ano": 2025, "op": "PA000100104906, Ceva.", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "02/12/2025", "_ano": 2025, "op": "PA000100104906, Ceva.", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "03/12/2025", "_ano": 2025, "op": "PA000100206282", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "03/12/2025", "_ano": 2025, "op": "PA000100203698, DSM", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "04/12/2025", "_ano": 2025, "op": "PA000100105811, Midea ", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "04/12/2025", "_ano": 2025, "op": "PA000100103948, Ceva.", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "04/12/2025", "_ano": 2025, "op": "P020327-010 / Midea /Pa000200205430", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "04/12/2025", "_ano": 2025, "op": "PA000200205430, Midea.", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Sentido de saída", "_data_fmt": "05/12/2025", "_ano": 2025, "op": "PA000100206436, FARMAX", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "08/12/2025", "_ano": 2025, "op": "PA000100206318, MIDEA", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "08/12/2025", "_ano": 2025, "op": "PA000100206317, MIDEA", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "08/12/2025", "_ano": 2025, "op": "PA000100206319, MIDEA", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Comercial", "_tipo": "Data/Prazo validade", "_data_fmt": "08/12/2025", "_ano": 2025, "op": "PA000100203698  - DSM", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Comercial", "_tipo": "Data/Prazo validade", "_data_fmt": "08/12/2025", "_ano": 2025, "op": "PA000100205099  - DSM", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "08/12/2025", "_ano": 2025, "op": "PA000100705354 - COLORMAQ", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "11/12/2025", "_ano": 2025, "op": "PA000100103204, AUSTER", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "12/12/2025", "_ano": 2025, "op": "PA000100304463, DONALDSON", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "15/12/2025", "_ano": 2025, "op": "PA000101005768, MULTILASER ", "cliente": ""}, {"_periodo": "2025-12", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "16/12/2025", "_ano": 2025, "op": "PA000101006552, MULTILASER", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Outros", "_data_fmt": "06/01/2026", "_ano": 2026, "op": "PA000100104417", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Versão do produto", "_data_fmt": "06/01/2026", "_ano": 2026, "op": "PA000200103979, CEVA", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "06/01/2026", "_ano": 2026, "op": "PA000101006364, KITOPLASTIC ", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "06/01/2026", "_ano": 2026, "op": "PA000101006364", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "06/01/2026", "_ano": 2026, "op": "P020610-002 / PA000100205517", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "07/01/2026", "_ano": 2026, "op": "PA000100103334, Donaldson.", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Erro cadastro / Info", "_data_fmt": "08/01/2026", "_ano": 2026, "op": "PA000100206397, Campeão lubrificantes ", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "10/01/2026", "_ano": 2026, "op": "PA000100105669", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "12/01/2026", "_ano": 2026, "op": "PA000100206643, Ghenvet", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "13/01/2026", "_ano": 2026, "op": "PA 000100103652/  0P P020642-001", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "13/01/2026", "_ano": 2026, "op": "PA000100206582, VETNIL", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "26/01/2026", "_ano": 2026, "op": "PA000100303908, FOXCONN", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "27/01/2026", "_ano": 2026, "op": "PA000100206480, STANLEY HAIR", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "30/01/2026", "_ano": 2026, "op": "PA000100606172  / CONSTANTA", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/01/2026", "_ano": 2026, "op": "P020721002", "cliente": ""}, {"_periodo": "2026-01", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "31/01/2026", "_ano": 2026, "op": "PA000100106372, INVICTA", "cliente": ""}, {"_periodo": "2026-02", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "03/02/2026", "_ano": 2026, "op": "PA000100205101 - P020330002", "cliente": ""}, {"_periodo": "2026-02", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "03/02/2026", "_ano": 2026, "op": "ÁpaPA000100205872 - P020651001/ Farmax", "cliente": ""}, {"_periodo": "2026-02", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "12/02/2026", "_ano": 2026, "op": "PA000100205101- Ceva ", "cliente": ""}, {"_periodo": "2026-02", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "19/02/2026", "_ano": 2026, "op": "P020724005", "cliente": ""}, {"_periodo": "2026-02", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "19/02/2026", "_ano": 2026, "op": "P020771002", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "02/03/2026", "_ano": 2026, "op": "PA000100106708, Ceva ", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "02/03/2026", "_ano": 2026, "op": "PA000200106455, Midea ", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "02/03/2026", "_ano": 2026, "op": "Pa000100704835 / Elgin", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "06/03/2026", "_ano": 2026, "op": "P020873-001 / HYUNDAY / PA000100806716 ", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "09/03/2026", "_ano": 2026, "op": "P020914001 / PA000100103208  / AUSTER", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "10/03/2026", "_ano": 2026, "op": "PA000100603131, Cadservice.", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "11/03/2026", "_ano": 2026, "op": "PA000100306834, cliente Foxconn", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "16/03/2026", "_ano": 2026, "op": "PA000100400397", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "17/03/2026", "_ano": 2026, "op": "PA000100306662, JABIL", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "PA000200205430, Midea.", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Versão do produto", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "PA000200205430, Midea.", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "21242001 / PA000100106500 / PAPER BAG", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "21163009 / PA000100106792 / PAPER BAG", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "21082002 / pa000100106792 / paper bag", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "PA000100206622, cliente Invicta. ", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "PA000100206625, cliente Invicta", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "PA000100206623", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "18/03/2026", "_ano": 2026, "op": "PA000100304145", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "19/03/2026", "_ano": 2026, "op": "PA000100106842, CEVA ", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "24/03/2026", "_ano": 2026, "op": "PA000100302078, Foxconn.", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "26/03/2026", "_ano": 2026, "op": "PA000200105608", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "30/03/2026", "_ano": 2026, "op": "PA000100204060", "cliente": ""}, {"_periodo": "2026-03", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "31/03/2026", "_ano": 2026, "op": "PA000100204494, DELL", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "06/04/2026", "_ano": 2026, "op": "P021332001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "08/04/2026", "_ano": 2026, "op": "A011029001 - PA000100104482", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "08/04/2026", "_ano": 2026, "op": "HG7N950X016 - CALCOMP", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "08/04/2026", "_ano": 2026, "op": "P021228001-Ceva - PA000100106711", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "09/04/2026", "_ano": 2026, "op": "021221001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "21333003 /pa000100104977", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "21333003 /pa000100104977", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "PA000100204056, Unicoba ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "PA000100106550, Foxconn ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "15/04/2026", "_ano": 2026, "op": "Gh69-46349a - paperbag bag samsung", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "16/04/2026", "_ano": 2026, "op": "PA000100206943, cliente Ceva.", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "18/04/2026", "_ano": 2026, "op": "Pa000100206915/ inbra indústria brasileira ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "18/04/2026", "_ano": 2026, "op": "21505001/002", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "18/04/2026", "_ano": 2026, "op": "Pa0000200105608/ p021505008", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "21/04/2026", "_ano": 2026, "op": "P021369001 / pa000100206899", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "21/04/2026", "_ano": 2026, "op": "P02369001 / pa000100206899 / adhetec", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "PA000200105608, cliente Midea ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021343005", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021340001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021339001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "PA000100205182, cliente Nautilus ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021293001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021293002", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "PA000100206436, Farmax", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "23/04/2026", "_ano": 2026, "op": "P021397001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "23/04/2026", "_ano": 2026, "op": "P021397002", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "24/04/2026", "_ano": 2026, "op": "P021163003", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "27/04/2026", "_ano": 2026, "op": "PA000100106944, CEVA ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "27/04/2026", "_ano": 2026, "op": "PA000100106944, CEVA ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "09/04/2026", "_ano": 2026, "op": "021221001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "21333003 /pa000100104977", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "21333003 /pa000100104977", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "PA000100204056, Unicoba ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "13/04/2026", "_ano": 2026, "op": "PA000100106550, Foxconn ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "15/04/2026", "_ano": 2026, "op": "Gh69-46349a - paperbag bag samsung", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "16/04/2026", "_ano": 2026, "op": "PA000100206943, cliente Ceva.", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "18/04/2026", "_ano": 2026, "op": "Pa000100206915/ inbra indústria brasileira ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "18/04/2026", "_ano": 2026, "op": "21505001/002", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "18/04/2026", "_ano": 2026, "op": "Pa0000200105608/ p021505008", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "21/04/2026", "_ano": 2026, "op": "P021369001 / pa000100206899", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "21/04/2026", "_ano": 2026, "op": "P02369001 / pa000100206899 / adhetec", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "PA000200105608, cliente Midea ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021343005", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021340001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021339001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "PA000100205182, cliente Nautilus ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021293001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "P021293002", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "22/04/2026", "_ano": 2026, "op": "PA000100206436, Farmax", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "23/04/2026", "_ano": 2026, "op": "P021397001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "23/04/2026", "_ano": 2026, "op": "P021397002", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "24/04/2026", "_ano": 2026, "op": "P021163003", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "27/04/2026", "_ano": 2026, "op": "PA000100106944, CEVA ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "27/04/2026", "_ano": 2026, "op": "PA000100106944, CEVA ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Versão do produto", "_data_fmt": "27/04/2026", "_ano": 2026, "op": "PA000200105607, Midea", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "27/04/2026", "_ano": 2026, "op": "PA000100106944 / ceva", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "28/04/2026", "_ano": 2026, "op": "PA000100206993 Vetnil", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Ajuste técnico", "_data_fmt": "28/04/2026", "_ano": 2026, "op": "PA000100206994. Vetnil", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "28/04/2026", "_ano": 2026, "op": "PA000100206994, Vetnil", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "P021553003", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "P 021554001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "P021554001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "P021179003", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "PA000100206789, Vetnil", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "PA000100206789, Vetnil ", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "29/04/2026", "_ano": 2026, "op": "P021555001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021588012", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021588011", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021588009", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021588008", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021588007", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021543001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "P021556001", "cliente": ""}, {"_periodo": "2026-04", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "30/04/2026", "_ano": 2026, "op": "PA000100206931. CLIENTE CEVA.", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "04/05/2026", "_ano": 2026, "op": "P021516003", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "04/05/2026", "_ano": 2026, "op": "P021587017", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "05/05/2026", "_ano": 2026, "op": "PA000200202857, CLIENTE SAMSUNG ", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "05/05/2026", "_ano": 2026, "op": "P021392002", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "PN/PA divergente", "_data_fmt": "06/05/2026", "_ano": 2026, "op": "p021393001", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Qualidade", "_tipo": "Layout divergente", "_data_fmt": "07/05/2026", "_ano": 2026, "op": "PA000100206603 / P021553019", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "07/05/2026", "_ano": 2026, "op": "P021534003", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "07/05/2026", "_ano": 2026, "op": "PA000100206606", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "07/05/2026", "_ano": 2026, "op": "PA000100206605, cliente Midea ", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "08/05/2026", "_ano": 2026, "op": "PA000100706976, Intelbras", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "08/05/2026", "_ano": 2026, "op": "PA000100106979, cliente Intelbras ", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Rotulagem divergente", "_data_fmt": "13/05/2026", "_ano": 2026, "op": "21637002 / BOTANIC / PA000100207090", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "13/05/2026", "_ano": 2026, "op": "P021637002", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "13/05/2026", "_ano": 2026, "op": "P021638004", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "13/05/2026", "_ano": 2026, "op": "P021637001", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "14/05/2026", "_ano": 2026, "op": "P021574001", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "15/05/2026", "_ano": 2026, "op": "21672003/PA000100106954", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "15/05/2026", "_ano": 2026, "op": "P021685004 e 021686003", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "15/05/2026", "_ano": 2026, "op": "P021672005", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "Erro cadastro / Info", "_data_fmt": "15/05/2026", "_ano": 2026, "op": "GH83-12748A / PA000100106955", "cliente": ""}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "18/05/2026", "_ano": 2026, "op": "P021686002 e 021685002", "cliente": "Vetnil"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "21/05/2026", "_ano": 2026, "op": "P021785001", "cliente": " samsung"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "21/05/2026", "_ano": 2026, "op": "P 021785001, 021786001 e 021786002", "cliente": "Samsung"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "22/05/2026", "_ano": 2026, "op": "P021685002", "cliente": " vetnil"}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "26/05/2026", "_ano": 2026, "op": "P021634001", "cliente": "001047 Transire Comercio e Servi"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "27/05/2026", "_ano": 2026, "op": "PA000100206891", "cliente": "Nautilus"}, {"_periodo": "2026-05", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "28/05/2026", "_ano": 2026, "op": "PA000100204134", "cliente": "Unicoba"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "29/05/2026", "_ano": 2026, "op": "PA000200107129", "cliente": "Ouro fino "}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "29/05/2026", "_ano": 2026, "op": "P021916001", "cliente": "samsung"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "29/05/2026", "_ano": 2026, "op": "PA000100103207", "cliente": "Auster "}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "30/05/2026", "_ano": 2026, "op": "PA000100205410/Rev. 0  - ET. 45X20MM - BOPP BRANCO PEROLADO BORRACHA (06606849)", "cliente": "Gertec"}, {"_periodo": "2026-05", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "30/05/2026", "_ano": 2026, "op": "P021067001/PA000100406813", "cliente": "Samsung "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "01/06/2026", "_ano": 2026, "op": "PA000100104491", "cliente": "Ceva "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "01/06/2026", "_ano": 2026, "op": "PA000100104492", "cliente": "Ceva"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "P021886001", "cliente": "Unicoba UCB"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "P021886002", "cliente": "Unicoba UCB"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "P021886003", "cliente": "Unicoba UCB"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021886007", "cliente": "Unicoba UCB"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "P021886004", "cliente": "Unicoba UCB"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021886005", "cliente": "Unicoba UCB"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021886006", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021886009", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021886010", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021886011", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "21639006 - PA000100207029", "cliente": "VETNIL"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "P021847003", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847003", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847002", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847002", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "P021847001", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "PA000100204392", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "PA000100204459", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "PA000100204459", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847001", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847004", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847005", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847004", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847005", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "PA000100204859", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021847006", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021846002", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021846001", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "PA000100204859", "cliente": "Unicoba "}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Versão do produto", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021846003", "cliente": ""}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021846002", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021846001", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Descrição divergente", "_data_fmt": "03/06/2026", "_ano": 2026, "op": "021846003", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "09/06/2026", "_ano": 2026, "op": "PA000200107129", "cliente": "OURO FINO "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "10/06/2026", "_ano": 2026, "op": "PA000100107163", "cliente": "Ceva "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "PN/PA divergente", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "PA000200107200", "cliente": "Samsung"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "P021841001", "cliente": "Samsung"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "Pa000100707118", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Ajuste técnico", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "Pa000100707118", "cliente": "Unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Ajuste técnico", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "pa000100707119", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Ajuste técnico", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "pa000100707120", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Ajuste técnico", "_data_fmt": "11/06/2026", "_ano": 2026, "op": "pa000100707121", "cliente": "unicoba"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "12/06/2026", "_ano": 2026, "op": "PA000100107175", "cliente": "Ceva "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Erro estrutura / FT", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100206789", "cliente": "Vetnil"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Sentido de saída", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100207151", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100207151", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204195", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204197", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204296", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204223", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204261", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204224", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100207146", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100207140", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100207141", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204277", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204226", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204272", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100207013", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "13/06/2026", "_ano": 2026, "op": "PA000100204275", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "16/06/2026", "_ano": 2026, "op": "P021863001", "cliente": "COMPAL MATRIZ"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "16/06/2026", "_ano": 2026, "op": "PA000100204213", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "16/06/2026", "_ano": 2026, "op": "Pa000100207188", "cliente": "Vetnil"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Layout divergente", "_data_fmt": "16/06/2026", "_ano": 2026, "op": "PA000100206624", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "16/06/2026", "_ano": 2026, "op": "P021975010", "cliente": "Biogrow"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207157", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207160", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207170", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Comercial", "_tipo": "Descrição divergente", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "P021890001", "cliente": "ACQUALIMP"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207100", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207099", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207169", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207158", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207171", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207161", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207161", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207198", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207197", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207195", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207172", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207093", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207192", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "Pa000100207193", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207155", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207194", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207154", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207154", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207156", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207156", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Imagem da OP", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207196", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA0004100207155", "cliente": "INVICTA"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207093", "cliente": "Invicta "}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207192", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207193", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207194", "cliente": "Invicta"}, {"_periodo": "2026-06", "_setor": "Desenvolvimento", "_tipo": "Qtd. por rolo", "_data_fmt": "17/06/2026", "_ano": 2026, "op": "PA000100207154", "cliente": "Invicta "}]};
+Chart.defaults.color='#8892a4';
+Chart.defaults.borderColor='#2e3347';
+Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+const PAL=['#4f7ef8','#34d399','#fbbf24','#a78bfa','#f87171','#22d3ee','#fb923c','#e879f9'];
+const KCLS=['blue','green','amber','purple','','','',''];
+let ch={};
+document.getElementById('upd').textContent='Atualizado em '+D.updated;
+const sa=document.getElementById('fano'), ss=document.getElementById('fset');
+D.anos.forEach(a=>{if(a>0)sa.innerHTML+=`<option value="${a}">${a}</option>`});
+D.setores.forEach(s=>ss.innerHTML+=`<option value="${s}">${s}</option>`);
+const sm=document.getElementById('fmes');
+['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].forEach((m,i)=>sm.innerHTML+=`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`);
+function grp(arr,k){return arr.reduce((a,r)=>{a[r[k]]=(a[r[k]]||0)+1;return a},{})}
+function render(){
+  const ano=sa.value, mes=document.getElementById('fmes').value, set=ss.value;
+  let r=D.raw;
+  if(ano) r=r.filter(x=>x._periodo&&x._periodo.startsWith(ano));
+  if(mes) r=r.filter(x=>x._periodo&&x._periodo.slice(5)===mes);
+  if(set) r=r.filter(x=>x._setor===set);
+  const n=r.length;
+  const bySect=grp(r,'_setor');
+  const sects=Object.entries(bySect).sort((a,b)=>b[1]-a[1]);
+  let k=`<div class="kpi blue"><div class="lbl">Total de SCs</div><div class="val">${n}</div></div>`;
+  sects.forEach(([s,v],i)=>{
+    const pct=n>0?((v/n)*100).toFixed(0):0;
+    k+=`<div class="kpi ${KCLS[i%KCLS.length]}"><div class="lbl">${s}</div><div class="val">${v}</div><div class="hint">${pct}% do total</div></div>`;
   });
-
-  // KPIs
-  document.getElementById('kpi-total').textContent = totalFilt;
-  document.getElementById('total-filtrado').textContent = totalFilt + ' registros';
-  document.getElementById('kpi-dev').textContent = devFilt;
-  document.getElementById('kpi-com').textContent = comFilt;
-  document.getElementById('kpi-dev-pct').textContent = totalFilt > 0 ? (devFilt/totalFilt*100).toFixed(1).replace('.',',') + '% do total' : '-';
-  document.getElementById('kpi-com-pct').textContent = totalFilt > 0 ? (comFilt/totalFilt*100).toFixed(1).replace('.',',') + '% do total' : '-';
-
-  // Pico mensal
-  const totaisMes = idx.map(i => {
-    const dev = filtroSetor === 'todos' || filtroSetor === 'DESENVOLVIMENTO' ? RAW.setor_por_mes.DESENVOLVIMENTO[i] : 0;
-    const com = filtroSetor === 'todos' || filtroSetor === 'COMERCIAL'       ? RAW.setor_por_mes.COMERCIAL[i] : 0;
-    const qua = filtroSetor === 'todos' || filtroSetor === 'QUALIDADE'       ? RAW.setor_por_mes.QUALIDADE[i] : 0;
-    return dev + com + qua;
+  document.getElementById('kpis').innerHTML=k;
+  const byP={};
+  r.forEach(x=>{if(x._periodo)byP[x._periodo]=(byP[x._periodo]||0)+1});
+  const per=Object.keys(byP).sort(), vals=per.map(p=>byP[p]);
+  function linreg(v){const n=v.length;if(n<2)return v.map(()=>null);let sx=0,sy=0,sxy=0,sx2=0;v.forEach((y,x)=>{sx+=x;sy+=y;sxy+=x*y;sx2+=x*x});const sl=(n*sxy-sx*sy)/(n*sx2-sx*sx||1),ic=(sy-sl*sx)/n;return v.map((_,x)=>+(sl*x+ic).toFixed(1))}
+  const trend=linreg(vals);
+  if(ch.m)ch.m.destroy();
+  ch.m=new Chart(document.getElementById('cMes'),{
+    type:'bar',
+    data:{labels:per,datasets:[
+      {label:'SCs',data:vals,backgroundColor:'rgba(79,126,248,.7)',borderColor:'#4f7ef8',borderWidth:1,borderRadius:4},
+      {type:'line',label:'Tendência',data:trend,borderColor:'#fbbf24',borderWidth:2,borderDash:[6,3],pointRadius:0,tension:0,fill:false,order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{boxWidth:12,padding:10,color:'#8892a4'}}},scales:{x:{grid:{color:'#2e3347'}},y:{grid:{color:'#2e3347'},beginAtZero:true,ticks:{stepSize:1}}}}
   });
-  const picoIdx = totaisMes.indexOf(Math.max(...totaisMes));
-  document.getElementById('kpi-pico').textContent = totaisMes[picoIdx] ?? 0;
-  document.getElementById('kpi-pico-mes').textContent = mesesLabel[picoIdx] ?? '-';
-
-  // Tipo mais freq.
-  const tipoTotais = RAW.tipos.map(t =>
-    idx.reduce((acc, i) => acc + (RAW.tipo_por_mes[t]?.[i] ?? 0), 0)
-  );
-  const topIdx = tipoTotais.indexOf(Math.max(...tipoTotais));
-  document.getElementById('kpi-top-tipo').textContent = RAW.tipos[topIdx]?.replace(' divergente','').replace(' / ','/') ?? '-';
-  document.getElementById('kpi-top-tipo-n').textContent = tipoTotais[topIdx] + ' ocorrências';
-
-  // ── EVOLUÇÃO MENSAL
-  const totaisMesFull = idx.map(i => {
-    const dev = filtroSetor === 'todos' || filtroSetor === 'DESENVOLVIMENTO' ? RAW.setor_por_mes.DESENVOLVIMENTO[i] : 0;
-    const com = filtroSetor === 'todos' || filtroSetor === 'COMERCIAL'       ? RAW.setor_por_mes.COMERCIAL[i] : 0;
-    const qua = filtroSetor === 'todos' || filtroSetor === 'QUALIDADE'       ? RAW.setor_por_mes.QUALIDADE[i] : 0;
-    return dev + com + qua;
+  const sL=sects.map(e=>e[0]),sV=sects.map(e=>e[1]);
+  if(ch.s)ch.s.destroy();
+  ch.s=new Chart(document.getElementById('cSet'),{
+    type:'doughnut',
+    data:{labels:sL,datasets:[{data:sV,backgroundColor:PAL,borderWidth:2,borderColor:'#1a1d27'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}
   });
-  let acum = 0;
-  const acumData = totaisMesFull.map(v => (acum += v));
-  chEv.data.labels = mesesLabel;
-  chEv.data.datasets = [
-    { type:'bar', label:'SC / mês', data: totaisMesFull, backgroundColor: totaisMesFull.map(v => v >= 80 ? '#e84b6a99' : v >= 40 ? '#e8b84b99' : '#4b8ee899'), borderRadius:5, order:2 },
-    { type:'line', label:'Acumulado', data: acumData, borderColor:'#e8b84b', backgroundColor:'transparent', pointBackgroundColor:'#e8b84b', pointRadius:3, borderWidth:2, tension:.3, yAxisID:'y2', order:1 }
-  ];
-  if (!chEv.options.scales.y2) {
-    chEv.options.scales.y2 = { type:'linear', position:'right', grid:{ drawOnChartArea:false }, ticks:{ color:'#e8b84b' } };
-  }
-  chEv.update();
-
-  // ── SETOR POR MÊS
-  const setoresFilt = filtroSetor === 'todos' ? RAW.setores : [filtroSetor];
-  chSM.data.labels = mesesLabel;
-  chSM.data.datasets = setoresFilt.map(s => ({
-    label: s.charAt(0) + s.slice(1).toLowerCase(),
-    data: idx.map(i => RAW.setor_por_mes[s][i]),
-    backgroundColor: CORES_SETOR[s] + 'cc',
-    borderColor: CORES_SETOR[s],
-    borderWidth: 1,
-    borderRadius: 4
-  }));
-  chSM.update();
-
-  // ── PIZZA SETOR
-  const pvLabels = [], pvVals = [], pvColors = [];
-  RAW.setores.forEach(s => {
-    if (filtroSetor !== 'todos' && s !== filtroSetor) return;
-    const v = idx.reduce((a, i) => a + RAW.setor_por_mes[s][i], 0);
-    if (v > 0) { pvLabels.push(s); pvVals.push(v); pvColors.push(CORES_SETOR[s]); }
+  const byT=grp(r,'_tipo');
+  const tE=Object.entries(byT).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(ch.t)ch.t.destroy();
+  ch.t=new Chart(document.getElementById('cTip'),{
+    type:'bar',
+    data:{labels:tE.map(e=>e[0]),datasets:[{label:'SCs',data:tE.map(e=>e[1]),backgroundColor:'rgba(52,211,153,.7)',borderColor:'#34d399',borderWidth:1,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#2e3347'},beginAtZero:true},y:{grid:{display:false}}}}
   });
-  chPS.data.labels = pvLabels;
-  chPS.data.datasets = [{ data: pvVals, backgroundColor: pvColors, borderColor: '#1e2130', borderWidth: 3, hoverOffset: 8 }];
-  chPS.update();
-
-  // ── TIPO BARRA HORIZONTAL
-  const tiposSorted = [...RAW.tipos].map((t, i) => ({
-    tipo: t,
-    val: idx.reduce((a, i2) => a + (RAW.tipo_por_mes[t]?.[i2] ?? 0), 0),
-    cor: CORES_TIPO[i]
-  })).sort((a,b) => b.val - a.val);
-  chTB.data.labels = tiposSorted.map(x => x.tipo);
-  chTB.data.datasets = [{ data: tiposSorted.map(x => x.val), backgroundColor: tiposSorted.map(x => x.cor + 'cc'), borderColor: tiposSorted.map(x => x.cor), borderWidth:1, borderRadius:4 }];
-  chTB.update();
-
-  // ── TIPO POR MÊS LINHA (top 6)
-  const top6 = tiposSorted.slice(0, 6);
-  chTM.data.labels = mesesLabel;
-  chTM.data.datasets = top6.map(({ tipo, cor }) => ({
-    label: tipo,
-    data: idx.map(i => RAW.tipo_por_mes[tipo]?.[i] ?? 0),
-    borderColor: cor,
-    backgroundColor: cor + '20',
-    pointBackgroundColor: cor,
-    pointRadius: 4,
-    pointHoverRadius: 6,
-    borderWidth: 2,
-    tension: .3,
-    fill: false
-  }));
-  chTM.update();
-
-  // ── HEATMAP
-  renderHeatmap(idx);
-}
-
-// ── OPTIONS HELPERS ───────────────────────────────────────────────────────────
-function baseGridOpts() {
-  return {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color:'#7c82a0', padding:12, boxWidth:12, font:{size:11} } }, tooltip: { backgroundColor:'#0f1117', titleColor:'#eaedf5', bodyColor:'#7c82a0', borderColor:'#2a2f45', borderWidth:1 } },
-    scales: {
-      x: { ticks:{ color:'#7c82a0' }, grid:{ color:'#2a2f45' } },
-      y: { ticks:{ color:'#7c82a0' }, grid:{ color:'#2a2f45' } }
-    }
-  };
-}
-function evolucaoOpts() { const o = baseGridOpts(); o.plugins.legend = { position:'top', labels: { color:'#7c82a0', padding:16, boxWidth:12 } }; return o; }
-function setorMesOpts()  { const o = baseGridOpts(); o.scales.x.stacked = true; o.scales.y.stacked = true; return o; }
-function pizzaOpts() {
-  return { responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ position:'right', labels:{ color:'#7c82a0', padding:14, boxWidth:14, font:{size:11} } }, tooltip:{ backgroundColor:'#0f1117', titleColor:'#eaedf5', bodyColor:'#7c82a0', borderColor:'#2a2f45', borderWidth:1, callbacks:{ label: ctx => { const tot = ctx.dataset.data.reduce((a,b)=>a+b,0); return ` ${ctx.parsed} (${(ctx.parsed/tot*100).toFixed(1)}%)`; } } } } };
-}
-function tipoBarOpts() {
-  return { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ display:false }, tooltip:{ backgroundColor:'#0f1117', titleColor:'#eaedf5', bodyColor:'#7c82a0', borderColor:'#2a2f45', borderWidth:1 } },
-    scales:{ x:{ ticks:{ color:'#7c82a0' }, grid:{ color:'#2a2f45' } }, y:{ ticks:{ color:'#eaedf5', font:{size:11} }, grid:{ color:'#2a2f4520' } } }
-  };
-}
-function tipoMesOpts() { const o = baseGridOpts(); o.plugins.legend = { position:'top', labels:{ color:'#7c82a0', padding:12, boxWidth:12, font:{size:11} } }; return o; }
-
-// ── HEATMAP TABLE ─────────────────────────────────────────────────────────────
-function renderHeatmap(idx) {
-  const setoresFilt = filtroSetor === 'todos' ? RAW.setores : [filtroSetor];
-  const tipos = RAW.tipos;
-
-  // Montar mapa setor -> tipo -> count filtrado
-  const mapa = {};
-  RAW.heatmap.forEach(r => {
-    if (filtroSetor !== 'todos' && r.setor !== filtroSetor) return;
-    if (!mapa[r.setor]) mapa[r.setor] = {};
-    mapa[r.setor][r.tipo_norm] = 0;
-  });
-  // Recalcular por idx (os dados do heatmap são totais; para filtro de meses, precisamos tipo_por_mes x setor_por_mes proporcional)
-  // Simplificação: para filtro de mês, proporcionar pelo total de meses filtrados
-  const tipoFiltrado = {};
-  tipos.forEach(t => {
-    tipoFiltrado[t] = idx.reduce((a, i) => a + (RAW.tipo_por_mes[t]?.[i] ?? 0), 0);
-  });
-
-  // Máximo para escala de cor
-  let maxVal = 0;
-  RAW.heatmap.forEach(r => { if (r.count > maxVal) maxVal = r.count; });
-
-  // Filtrar tipos com algum valor
-  const tiposComValor = tipos.filter(t => tipoFiltrado[t] > 0);
-
-  let html = `<div style="overflow-x:auto;"><table class="heatmap-table">
-    <thead><tr>
-      <th style="min-width:120px;">Tipo de Divergência</th>
-      ${setoresFilt.map(s => `<th style="text-align:center;color:${CORES_SETOR[s]};">${s.charAt(0)+s.slice(1).toLowerCase()}</th>`).join('')}
-    </tr></thead><tbody>`;
-
-  tiposComValor.forEach(t => {
-    html += `<tr><td><span class="tipo-tag">${t}</span></td>`;
-    setoresFilt.forEach(s => {
-      const row = RAW.heatmap.find(r => r.setor === s && r.tipo_norm === t);
-      const v = row ? row.count : 0;
-      if (v === 0) {
-        html += `<td style="text-align:center;"><span style="color:#2a2f45;">—</span></td>`;
-      } else {
-        const intensity = Math.max(0.12, v / maxVal);
-        const cor = CORES_SETOR[s];
-        html += `<td style="text-align:center;"><span class="heatmap-cell" style="background:${cor}${Math.round(intensity*255).toString(16).padStart(2,'0')};color:${intensity>0.5?'#0f1117':cor};">${v}</span></td>`;
-      }
+  const aS=[...new Set(r.map(x=>x._setor))].sort();
+  const aT=[...new Set(r.map(x=>x._tipo))].filter(Boolean).sort();
+  const mx={};
+  r.forEach(x=>{if(!mx[x._setor])mx[x._setor]={};mx[x._setor][x._tipo]=(mx[x._setor][x._tipo]||0)+1});
+  const maxV=Math.max(...aS.flatMap(s=>aT.map(t=>mx[s]?.[t]||0)),1);
+  let h='<table class="ht"><thead><tr><th>Setor</th>';
+  aT.forEach(t=>h+=`<th>${t}</th>`);
+  h+='</tr></thead><tbody>';
+  aS.forEach(s=>{
+    h+=`<tr><td class="s">${s}</td>`;
+    aT.forEach(t=>{
+      const v=mx[s]?.[t]||0;
+      const i=v/maxV;
+      const bg=v>0?`rgba(79,126,248,${(0.12+i*0.78).toFixed(2)})` :'transparent';
+      const c=i>0.55?'#fff':(v>0?'#a8c0ff':'#4a4f65');
+      h+=`<td style="background:${bg};color:${c}">${v||''}</td>`;
     });
-    html += `</tr>`;
+    h+='</tr>';
   });
-
-  html += `</tbody></table></div>`;
-  document.getElementById('heatmap-container').innerHTML = html;
+  h+='</tbody></table>';
+  document.getElementById('hm').innerHTML=h;
 }
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-criarGraficos();
+render();
 </script>
 </body>
 </html>
